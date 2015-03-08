@@ -90,6 +90,7 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Naviga
 #from EventBlocker import EventBlocker
 # from PlotNavigationToolbar import PlotNavigationToolbar
 from global_constants import preferences
+from setsolver import *
 ELECTRICAL_MODEL = 0
 CHEMICAL_MODEL   = 1
 
@@ -335,6 +336,7 @@ class RunView(RunBase):
         self.setDataRoot(moose.Neutral(self.plugin.modelRoot).path)
         self.plugin.modelRootChanged.connect(self.setModelRoot)
         self.plugin.dataRootChanged.connect(self.setDataRoot)
+        # self.getCentralWidget()
         self._menus += self.getCentralWidget().getMenus()
 
     def getCentralWidget(self):
@@ -360,6 +362,7 @@ class RunView(RunBase):
         self.centralWidget.plotAllData()
 
     def getToolPanes(self):
+        return []
         if not self._toolPanes:
             self._toolPanes = [self.getSchedulingDockWidget()]
         return self._toolPanes
@@ -385,6 +388,7 @@ class RunView(RunBase):
         self._toolBars += widget.getToolBars()
         return self.schedulingDockWidget
 
+'''
 class MooseRunner(QtCore.QObject):
     """Helper class to control simulation execution
 
@@ -454,7 +458,7 @@ class MooseRunner(QtCore.QObject):
     def stop(self):
         """Pause simulation"""
         self._pause = True
-
+'''
 class SchedulingWidget(QtGui.QWidget):
     """Widget for scheduling.
 
@@ -497,7 +501,6 @@ class SchedulingWidget(QtGui.QWidget):
         # layout.addItem(spacerItem)
         # self.setLayout(layout)
         # self._toolBars.append(
-        self.modelType                  = None
         self.modelRoot                  = None
         self.dataRoot                   = None
         self.runner                     = Runner()
@@ -618,9 +621,14 @@ class SchedulingWidget(QtGui.QWidget):
         self.continueFlag               = False
 
     def runSimulation(self):
-
         if self.modelType == CHEMICAL_MODEL:
+            compt = moose.wildcardFind(self.modelRoot+'/##[ISA=ChemCompt]')
+            if not moose.exists(compt[0].path+'/stoich'):
+                chemPref = self.preferences.getChemicalPreferences()
+                solver = chemPref["simulation"]["solver"]
+                addSolver(self.modelRoot,solver)
             status = self.solverStatus()
+            #print "status ",status
                    # if status != 0 or status == -1:
             #     return
             if status == None or int(status) == -1 or int(status) == 0:
@@ -696,13 +704,12 @@ class SchedulingWidget(QtGui.QWidget):
 
     def solverStatus(self):
         compt = moose.wildcardFind(self.modelRoot+'/##[ISA=ChemCompt]')
-        #print moose.le(compt[0].path)
         if not moose.exists(compt[0].path+'/stoich'):
             return None
         else:
             stoich = moose.Stoich(compt[0].path+'/stoich')
             status = int(stoich.status)
-            #print("Status =>", status)
+            # print("Status =>", status)
             if status == -1:
                 QtGui.QMessageBox.warning(None,"Could not Run the model","Warning: Reaction path not yet assigned.\n ")
                 return -1
@@ -1242,7 +1249,7 @@ class PlotWidget(QWidget):
 # Plot view - select fields to record
 #
 ###################################################
-
+'''
 class PlotView(PlotBase):
     """View for selecting fields on elements to plot."""
     def __init__(self, model, graph, index, *args):
@@ -1343,7 +1350,7 @@ class PlotView(PlotBase):
             utils.create(self.plugin.modelRoot,moose.element(element),field,"Table2")
             #self.dataTable.create(self.plugin.modelRoot, moose.element(element), field)
             #self.updateCallback()
-    '''
+
     def createRecordingTable(self, element, field):
         """Create table to record `field` from element `element`
 
@@ -1390,7 +1397,7 @@ class PlotView(PlotBase):
             moose.connect(table, 'requestOut', target, 'get%s' % (field))
             self._recordingDict[(target, field)] = table
             self._reverseDict[table] = (target, field)
- '''
+'''
 class PlotSelectionWidget(QtGui.QScrollArea):
     """Widget showing the fields of specified elements and their plottable
     fields. User can select any number of fields for plotting and click a

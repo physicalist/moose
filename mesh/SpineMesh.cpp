@@ -77,6 +77,29 @@ const Cinfo* SpineMesh::initCinfo()
 			"is always just one voxel per spine head. ",
 			&SpineMesh::getElecComptMap
 		);
+		static ReadOnlyValueFinfo< SpineMesh, vector< Id > > elecComptList(
+			"elecComptList",
+			"Vector of Ids of all electrical compartments in this "
+			"SpineMesh. Ordering is as per the tree structure built in "
+			"the NeuroMesh, and may differ from Id order. Ordering "
+			"matches that used for startVoxelInCompt and endVoxelInCompt",
+			&SpineMesh::getElecComptMap
+		);
+		static ReadOnlyValueFinfo< SpineMesh, vector< unsigned int > > startVoxelInCompt(
+			"startVoxelInCompt",
+			"Index of first voxel that maps to each electrical "
+			"compartment. This is a trivial function in the SpineMesh, as"
+			"we have a single voxel per spine. So just a vector of "
+			"its own indices.",
+			&SpineMesh::getStartVoxelInCompt
+		);
+		static ReadOnlyValueFinfo< SpineMesh, vector< unsigned int > > endVoxelInCompt(
+			"endVoxelInCompt",
+			"Index of end voxel that maps to each electrical "
+			"compartment. Since there is just one voxel per electrical "
+			"compartment in the spine, this is just a vector of index+1",
+			&SpineMesh::getEndVoxelInCompt
+		);
 
 		//////////////////////////////////////////////////////////////
 		// MsgDest Definitions
@@ -99,6 +122,9 @@ const Cinfo* SpineMesh::initCinfo()
 	static Finfo* spineMeshFinfos[] = {
 		&parentVoxel,		// ReadOnlyValueFinfo
 		&elecComptMap,		// ReadOnlyValueFinfo
+		&elecComptList,		// ReadOnlyValueFinfo
+		&startVoxelInCompt,		// ReadOnlyValueFinfo
+		&endVoxelInCompt,		// ReadOnlyValueFinfo
 		&spineList,			// DestFinfo
 		// psdListOut(),		// SrcFinfo
 	};
@@ -179,6 +205,22 @@ vector< Id > SpineMesh::getElecComptMap() const
 	vector< Id > ret( spines_.size() );
 	for ( unsigned int i = 0; i < spines_.size(); ++i ) 
 		ret[i] = spines_[i].headId();
+	return ret;
+}
+
+vector< unsigned int > SpineMesh::getStartVoxelInCompt() const
+{
+	vector< unsigned int > ret( spines_.size() );
+	for ( unsigned int i = 0; i < ret.size(); ++i ) 
+		ret[i] = i;
+	return ret;
+}
+
+vector< unsigned int > SpineMesh::getEndVoxelInCompt() const
+{
+	vector< unsigned int > ret( spines_.size() );
+	for ( unsigned int i = 0; i < ret.size(); ++i ) 
+		ret[i] = i+1;
 	return ret;
 }
 
@@ -334,6 +376,63 @@ void SpineMesh::innerHandleNodeInfo(
 
 
 }
+//////////////////////////////////////////////////////////////////
+// Inherited virtual funcs
+//////////////////////////////////////////////////////////////////
+
+const vector< double >& SpineMesh::vGetVoxelVolume() const
+{
+	return vs_;
+}
+
+const vector< double >& SpineMesh::vGetVoxelMidpoint() const
+{
+	static vector< double > midpoint;
+	midpoint.resize( spines_.size() * 3 );
+	for ( unsigned int i = 0; i < spines_.size(); ++i ) {
+		spines_[i].mid( midpoint[i], 
+						midpoint[i + spines_.size() ], 
+						midpoint[i + 2 * spines_.size() ] 
+		); 
+	}
+	return midpoint;
+}
+
+const vector< double >& SpineMesh::getVoxelArea() const
+{
+	return area_;
+}
+
+const vector< double >& SpineMesh::getVoxelLength() const
+{
+	return length_;
+}
+
+double SpineMesh::vGetEntireVolume() const
+{
+	double ret = 0.0;
+	for ( vector< double >::const_iterator i = 
+					vs_.begin(); i != vs_.end(); ++i )
+		ret += *i;
+	return ret;
+}
+
+bool SpineMesh::vSetVolumeNotRates( double volume )
+{
+	double volscale = volume / vGetEntireVolume();
+	double linscale = pow( volscale, 1.0/3.0 );
+	assert( vs_.size() == spines_.size() );
+	assert( area_.size() == spines_.size() );
+	assert( length_.size() == spines_.size() );
+	for ( unsigned int i = 0; i < spines_.size(); ++i ) {
+		spines_[i].setVolume( volume );
+		vs_[i] *= volscale;
+		area_[i] *= linscale * linscale;
+		length_[i] *= linscale;
+	}
+	return true;
+}
+
 //////////////////////////////////////////////////////////////////
 // Inherited virtual funcs
 //////////////////////////////////////////////////////////////////

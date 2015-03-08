@@ -3,8 +3,8 @@
 from libcpp.string cimport string
 
 cimport Shell as _Shell
-cimport Id as _Id 
-cimport ObjId as _ObjId 
+cimport Id as _id 
+cimport ObjId as _objid 
 
 cdef class PyShell:
 
@@ -16,16 +16,14 @@ cdef class PyShell:
     def __dealloc__(self):
         del self.thisptr 
 
-    cdef _Id.Id doCreate(self
+    cdef _id.Id create(self
             , _type
-            , _ObjId.ObjId  _parent
             ,  _name
             , _numData
             , _nodePolicy
             , _preferedNode
             ):
-
-        return self.thisptr.doCreate(_type, _parent, _name, _numData
+        return self.thisptr.create(_type, _name, _numData
                 , _nodePolicy , _preferedNode)
     
     def callCreate(self):

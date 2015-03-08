@@ -11,9 +11,9 @@
 # NOTE:
 # This Makefile is compatible with _GNU Make_.
 # This does not work with nmake or borland make.
-# You may have to specify some variables when calling gnu make as 
+# You may have to specify some variables when calling gnu make as
 # described in the comments below. The defaults should work on most
-# Unix clones. 
+# Unix clones.
 ########################################################################
 
 # Linux compilation:
@@ -25,7 +25,7 @@
 #
 #     ADDITIONAL COMMANDLINE VARIABLES FOR MAKE
 #
-######################################################################     
+######################################################################
 # The variable BUILD determines if it should be optimized (release)
 # or a debug version (default).
 # make can be run with a command line parameter like below:
@@ -36,17 +36,17 @@
 # make clean
 # make
 #
-# There are some more variables which just need to be defined for 
+# There are some more variables which just need to be defined for
 # controlling the compilation and the value does not matter. These are:
 #
 # USE_GSL - use GNU Scientific Library for integration in kinetic simulations
-# 
-# USE_READLINE - use the readline library which provides command history and 
+#
+# USE_READLINE - use the readline library which provides command history and
 # 		better command line editing capabilities
-# 
-# GENERATE_WRAPPERS - useful for python interface developers. The binary created 
+#
+# GENERATE_WRAPPERS - useful for python interface developers. The binary created
 # 		with this option looks for a directory named 'generated' in the
-# 		working directory and creates a wrapper class ( one .h file 
+# 		working directory and creates a wrapper class ( one .h file
 # 		and a .cpp file ) and partial code for the swig interface file
 # 		(pymoose.i). These files with some modification can be used for
 # 		generating the python interface using swig.
@@ -54,15 +54,16 @@
 # USE_MPI - compile with support for parallel computing through MPICH library
 #
 # USE_SBML (default value: 0) - compile with support for the Systems Biology
-# 		Markup Language (SBML). This allows you to read and write chemical 
+# 		Markup Language (SBML). This allows you to read and write chemical
 # 		kinetic models in the simulator-indpendent SBML format.
-# 
+#
 
 # Default values for flags. The operator ?= assigns the given value only if the
 # variable is not already defined.
 USE_SBML?=0
 USE_HDF5?=1
 USE_CUDA?=0
+USE_NEUROKIT?=0
 PYTHON?=2
 # BUILD (= debug, release)
 ifndef BUILD
@@ -74,10 +75,10 @@ endif
 #export PLATFORM
 
 # Get the processor architecture - i686 or x86_64
-# All these should be taken care of in a script, not in the 
+# All these should be taken care of in a script, not in the
 # Makefile. But we are
 ifndef MACHINE
-MACHINE=i686 
+MACHINE=i686
 endif
 # We are assuming all non-win32 systems to be POSIX compliant
 # and thus have the command uname for getting Unix system name
@@ -86,61 +87,68 @@ MACHINE=$(shell uname -m)
 PLATFORM := $(shell uname -s)
 endif
 
-
+USE_NUMPY=1
 # Debug mode:
 
 ifeq ($(BUILD),debug)
 CXXFLAGS = -g -fpermissive -fno-strict-aliasing -fPIC -fno-inline-functions -Wall -Wno-long-long -pedantic -DDO_UNIT_TESTS -DUSE_GENESIS_PARSER
-USE_GSL = 1
+USE_GSL = true
 endif
 # Optimized mode:
 ifeq ($(BUILD),release)
 CXXFLAGS  = -O3 -fpermissive -fno-strict-aliasing -fPIC -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER
-USE_GSL = 1
+USE_GSL = true
 endif
 # Profiling mode:
 ifeq ($(BUILD),profile)
-CXXFLAGS  = -O3 -pg  -fpermissive -fno-strict-aliasing -fPIC -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER  
-USE_GSL = 1
+CXXFLAGS  = -O3 -pg  -fpermissive -fno-strict-aliasing -fPIC -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER
+USE_GSL = true
 endif
 # Profiling mode with gperftoools
 ifeq ($(BUILD),gperf)
-CXXFLAGS  = -O3 -fpermissive -fno-strict-aliasing -fPIC -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER  
+CXXFLAGS  = -O3 -fpermissive -fno-strict-aliasing -fPIC -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER
 LDFLAGS += -lprofiler -ltcmalloc
-USE_GSL = 1
+USE_GSL = true
 endif
 # Threading mode:
 ifeq ($(BUILD),thread)
-CXXFLAGS  = -O3 -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER  
-USE_GSL = 1
+CXXFLAGS  = -O3 -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER
+USE_GSL = true
 endif
 
 # MPI mode:
 ifeq ($(BUILD),mpi)
 CXXFLAGS = -g -fpermissive -fno-strict-aliasing -fPIC -fno-inline-functions -Wall -Wno-long-long -pedantic -DDO_UNIT_TESTS -DUSE_GENESIS_PARSER
 USE_MPI = 1
-USE_GSL = 1
+USE_GSL = true
 endif
 
 # optimized MPI mode:
 ifeq ($(BUILD),ompi)
 CXXFLAGS  = -O3 -fpermissive -fno-strict-aliasing -fPIC -Wall -Wno-long-long -pedantic -DNDEBUG -DUSE_GENESIS_PARSER
 USE_MPI = 1
-USE_GSL = 1
+USE_GSL = true
 endif
 
 # optimised mode but with unit tests.
 ifeq ($(BUILD),odebug)
 CXXFLAGS = -O3 -Wall -Wno-long-long -pedantic -DDO_UNIT_TESTS -DUSE_GENESIS_PARSER
-USE_GSL = 1
+USE_GSL = true
 endif
 
 # including SMOLDYN
 ifdef USE_SMOLDYN
 CXXFLAGS = -g -Wall -Wno-long-long -pedantic -DDO_UNIT_TESTS -DUSE_GENESIS_PARSER
-USE_GSL = 1
+USE_GSL = true
 endif
 
+# Use a strict compilation
+ifeq ($(BUILD),developer)
+    CXXFLAGS=-g \
+	     -Wall -Werror -Wno-unused-variable -Wno-unused-function \
+	     -DDO_UNIT_TESTS -DDEVELOPER -DDEBUG
+    USE_GSL = true
+endif
 ##########################################################################
 #
 # MAC OS X compilation, Debug mode:
@@ -172,13 +180,13 @@ endif
 
 
 # Libraries are defined below.
-SUBLIBS = 
+SUBLIBS =
 # Notice that pthread is no more included
 LIBS =	-L/usr/lib -L/usr/local/lib
 
 #LIBS = 	-lm
 
-# For 64 bit Linux systems add paths to 64 bit libraries 
+# For 64 bit Linux systems add paths to 64 bit libraries
 ifeq ($(PLATFORM),Linux)
 CXXFLAGS += -DLINUX
 ifeq ($(MACHINE),x86_64)
@@ -224,10 +232,10 @@ endif
 # To use SBML, pass USE_SBML=1 in make command line
 ifeq ($(USE_SBML),1)
 LIBS+= -lsbml
-CXXFLAGS+=-DUSE_SBML 
-LDFLAGS += -L/usr/lib
+CXXFLAGS+=-DUSE_SBML
+LDFLAGS += -L/usr/lib64 -Wl,--rpath='/usr/lib64'
 SBML_DIR = sbml
-SBML_LIB = sbml/_sbml.o 
+SBML_LIB = sbml/_sbml.o
 endif
 
 #Saeed
@@ -235,13 +243,18 @@ endif
 ifeq ($(USE_CUDA),1)
 LIBS+= -L/usr/local/cuda/lib64 -LhsolveCuda/cudaLibrary  -lcuda -lcudart -lm -lmooseCudaLibrary
 HCUDA_DIR = hsolveCuda
-HCUDA_LIB = hsolveCuda/_hsolveCuda.o 
+HCUDA_LIB = hsolveCuda/_hsolveCuda.o
+endif
+
+# To disable numpy pass USE_NUMPY=0
+ifeq ($(USE_NUMPY),1)
+CXXFLAGS+=-DUSE_NUMPY
 endif
 
 # To compile examples, pass EXAMPLES=true ( anything on the right will do) in make command line
 ifdef EXAMPLES
-EXAMPLES_DIR = examples/trials
-EXAMPLES_LIB = examples/trials/_trials.o
+EXAMPLES_DIR = examples
+EXAMPLES_LIB = examples/_trials.o
 endif
 
 # To use Smoldyn, pass USE_SMOLDYN=true ( anything on the right will do) in make command line
@@ -299,11 +312,15 @@ SUBDIR = \
 	utility \
 	external/muparser \
 	biophysics \
+	synapse \
+	intfire \
 	kinetics \
 	ksolve \
 	mesh \
+	hsolve \
 	diffusion \
 	device \
+	signeur \
 	benchmarks \
 	$(SMOLDYN_DIR) \
 	$(SBML_DIR) \
@@ -324,16 +341,28 @@ OBJLIBS =	\
 	utility/_utility.o \
 	external/muparser/_muparser.o \
 	biophysics/_biophysics.o \
+	synapse/_synapse.o \
+	intfire/_intfire.o \
 	kinetics/_kinetics.o \
 	ksolve/_ksolve.o \
+	hsolve/_hsolve.o \
 	mesh/_mesh.o \
 	diffusion/_diffusion.o \
 	device/_device.o \
+	signeur/_signeur.o \
 	benchmarks/_benchmarks.o \
 	$(SMOLDYN_LIB) \
 	$(SBML_LIB) \
 	$(HCUDA_LIB) \
 	$(EXAMPLES_LIB) \
+
+
+ifeq ($(USE_NEUROKIT),1)
+	NEUROKIT_COMMAND = cd ./python/moogli; python setup.py build;  cd ../../; mv ./python/moogli/build/lib.linux-x86_64-2.7/moogli.so ./python/;
+# else
+# 	NEUROKIT_COMMAND = ""
+endif
+
 
 export CXX
 export CXXFLAGS
@@ -342,7 +371,10 @@ export LIBS
 export USE_GSL
 export USE_SBML
 
-all: moose pymoose
+all: moose pymoose neurokit
+
+neurokit: ./python/moogli/setup.py
+	$(NEUROKIT_COMMAND)
 
 moose: libs $(OBJLIBS) $(PARALLEL_LIB)
 	$(CXX) $(CXXFLAGS) $(OBJLIBS) $(PARALLEL_LIB) $(LIBS) -o moose
@@ -363,9 +395,15 @@ PYTHON_VERSION := $(subst ., ,$(lastword $(shell python --version 2>&1)))
 ifneq ($(BUILD),debug)
 PYTHON_CFLAGS := $(shell python-config --cflags)
 PYTHON_LDFLAGS := $(shell python-config --ldflags)
-else 
-PYTHON_CFLAGS := $(shell python-config --includes) -fno-strict-aliasing -fwrapv -Wstrict-prototypes -fstack-protector --param=ssp-buffer-size=4 -Wformat -Wformat-security -Werror=format-security
-PYTHON_LDFLAGS := -L/usr/lib/$(INSTALLED_PYTHON)  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
+else
+PYTHON_CFLAGS := $(shell python-config --includes) \
+    -fno-strict-aliasing -fwrapv \
+    # -Wstrict-prototypes  \ # This option is not supported by g++-4.8
+    -Wformat -Wformat-security -Werror=format-security \
+    -fstack-protector --param=ssp-buffer-size=4
+
+PYTHON_LDFLAGS := -L/usr/lib/$(INSTALLED_PYTHON) \
+    -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 endif # ifneq ($(BUILD),debug)
 endif # ifeq ($(PYTHON),3)
 PYTHON_VERSION_MAJOR := $(word 1,${PYTHON_VERSION})
@@ -373,33 +411,42 @@ PYTHON_VERSION_MINOR := $(word 2,${PYTHON_VERSION})
 INSTALLED_PYTHON := python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}
 endif
 
+# For developer build and strict checking
+ifeq ($(BUILD),developer)
+    PYTHON_CFLAGS := $(PYTHON_CFLAGS) -Wall -Werror -Wno-unused-function -Wno-unused-variable
+endif  # ifeq(${BUILD},developer)
+
 ifndef PYTHON_CFLAGS
-PYTHON_CFLAGS := -I/usr/include/$(INSTALLED_PYTHON) -fno-strict-aliasing -fwrapv -Wstrict-prototypes -fstack-protector --param=ssp-buffer-size=4 -Wformat -Wformat-security -Werror=format-security
+PYTHON_CFLAGS := -I/usr/include/$(INSTALLED_PYTHON) -fno-strict-aliasing \
+    -fwrapv \
+     -fstack-protector \
+    #-Wstrict-prototypes \ # This option is obsolete for g++-4.8
+    --param=ssp-buffer-size=4 \
+    -Wformat -Wformat-security -Werror=format-security
+
 PYTHON_LDFLAGS := -L/usr/lib/$(INSTALLED_PYTHON)  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 endif
 # There are some unix/gcc specific paths here. Should be cleaned up in future.
 pymoose: python/moose/_moose.so
 pymoose: CXXFLAGS += -DPYMOOSE $(PYTHON_CFLAGS)
-pymoose: OBJLIBS += pymoose/_pymoose.o basecode/_basecode_pymoose.o
-pymoose: OBJLIBS := $(filter-out basecode/_basecode.o,$(OBJLIBS))
+pymoose: OBJLIBS += pymoose/_pymoose.o
 pymoose: LDFLAGS += $(PYTHON_LDFLAGS)
 export CXXFLAGS
-python/moose/_moose.so: libs $(OBJLIBS) basecode/_basecode_pymoose.o
-	$(MAKE) -f Makefile.old -C pymoose
+python/moose/_moose.so: libs $(OBJLIBS)
+	$(MAKE) -C pymoose
 	$(CXX) -shared $(LDFLAGS) $(CXXFLAGS) -o $@ $(OBJLIBS) $(LIBS)
 	@echo "pymoose module built."
 
 # This will generate an object file without main
-basecode/_basecode_pymoose.o: 	
-	$(MAKE) -f Makefile.old -C basecode pymoose 
-	@echo "_basecode_pymoose.o built"
 libs:
-	@(for i in $(SUBDIR) $(PARALLEL_DIR); do $(MAKE) -f Makefile.old -C $$i; done)
+	@for i in $(SUBDIR) $(PARALLEL_DIR); do \
+	    $(MAKE) -C $$i || exit $$?; \
+	done
 	@echo "All Libs compiled"
 
 clean:
-	@(for i in $(CLEANSUBDIR) ; do $(MAKE) -f Makefile.old -C $$i clean;  done)
-	-rm -rf moose  core.* DOCS/html python/moose/*.so python/moose/*.pyc  
+	@(for i in $(CLEANSUBDIR) ; do $(MAKE) -C $$i clean;  done)
+	-rm -rf moose  core.* DOCS/html python/moose/*.so python/moose/*.pyc
 
 ############ INSTALL (works for sudo make install and deb packaging using dpkg-buildpackage)
 ## get the default python module install location
@@ -427,10 +474,10 @@ install:
 	mkdir -p $(DESTDIR)$(install_prefix)/share/moose
 	## copy filtering out the .svn (hidden) files
 	rsync -r --exclude=.svn Demos/* $(DESTDIR)$(install_prefix)/share/moose/Demos
-	rsync -r --exclude=.svn old_gui/* $(DESTDIR)$(install_prefix)/share/moose/gui
+	rsync -r --exclude=.svn gui/* $(DESTDIR)$(install_prefix)/share/moose/gui
 	test -d $(DESTDIR)$(install_prefix)/share/doc || mkdir -p $(DESTDIR)$(install_prefix)/share/doc
 	rsync -r --exclude=.svn Docs/* $(DESTDIR)$(install_prefix)/share/doc/moose
-
+	# rsync -r --exclude=.svn Demos/* $(DESTDIR)$(install_prefix)/share/moose/
 	## pymoose module goes to python's dist-packages
 	## delete older .../dist-packages/moose, - before rm means ignore errors (eg not found)
 	-rm -rf $(DESTDIR)$(pydistpkg_dir)/moose
@@ -454,21 +501,21 @@ install:
         ## see standards.freedesktop.org for specifications for where to put menu entries and icons
         ## copy the .desktop files to /usr/share/applications for link to show up in main menu
 	mkdir -p $(DESTDIR)$(install_prefix)/share/applications
-	cp old_gui/MooseGUI.desktop $(DESTDIR)$(install_prefix)/share/applications/
-	cp old_gui/MooseSquidAxon.desktop $(DESTDIR)$(install_prefix)/share/applications/
+	cp gui/MooseGUI.desktop $(DESTDIR)$(install_prefix)/share/applications/
+	cp gui/MooseSquidAxon.desktop $(DESTDIR)$(install_prefix)/share/applications/
         ## copy the .desktop files to the desktop too to get icons
-	cp old_gui/MooseGUI.desktop $$HOME/Desktop/
+	cp gui/MooseGUI.desktop $$HOME/Desktop/
 	chmod a+x $$HOME/Desktop/MooseGUI.desktop
 	chown $(username) $(HOME)/Desktop/MooseGUI.desktop
 	chgrp $(username) $(HOME)/Desktop/MooseGUI.desktop
-	cp old_gui/MooseSquidAxon.desktop $$HOME/Desktop/
+	cp gui/MooseSquidAxon.desktop $$HOME/Desktop/
 	chmod a+x $$HOME/Desktop/MooseSquidAxon.desktop
 	chgrp $(username) $(HOME)/Desktop/MooseSquidAxon.desktop
 	chown $(username) $(HOME)/Desktop/MooseSquidAxon.desktop
         ## copy icon to /usr/share/icons/hicolor/<size>/apps (hicolor is the fallback theme)
 	mkdir -p $(DESTDIR)$(install_prefix)/share/icons/hicolor/scalable/apps
-	cp old_gui/icons/moose_icon.png $(DESTDIR)$(install_prefix)/share/icons/hicolor/scalable/apps/
-	cp old_gui/icons/squid.png $(DESTDIR)$(install_prefix)/share/icons/hicolor/scalable/apps/
+	cp gui/icons/moose_icon.png $(DESTDIR)$(install_prefix)/share/icons/hicolor/scalable/apps/
+	cp gui/icons/squid.png $(DESTDIR)$(install_prefix)/share/icons/hicolor/scalable/apps/
         ## need to update the icon cache to show the icon
 	update-icon-caches $(DESTDIR)$(install_prefix)/share/icons/hicolor/
 

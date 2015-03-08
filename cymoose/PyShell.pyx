@@ -1,14 +1,13 @@
-# Wrapper around msg/Shell class
+# distutils: language = c++
 
 from libcpp.string cimport string
-from cython.operator import dereference
+from cython.operator import dereference as deref
+from libc.stdio cimport printf
 
 cimport Shell as _Shell
 cimport Id as _Id
 cimport ObjId as _ObjId
 
-include "PyId.pyx"
-include "PyObjId.pyx"
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -31,9 +30,44 @@ cdef class PyShell:
     def create(self, string elemType, string elemPath, unsigned int numData
             , _Shell.NodePolicy nodePolicy = _Shell.MooseBlockBalance
             , unsigned int preferredNode = 1):
-        cdef _Id.Id obj
-        obj = self.thisptr.create(elemType, elemPath , numData, nodePolicy, preferredNode)
+        """Call shell create function """
+        cdef _Id.Id id_
+        id_ = self.thisptr.create(elemType, elemPath , numData, nodePolicy, preferredNode)
         newObj = PyId()
-        newObj.thisptr = &obj
+        newObj.thisptr = &id_
         newObj.setPath()
         return newObj
+
+
+    # Function delete clashes with built-in name, therefore erase is provided.
+    cdef erase(self, _ObjId.ObjId objId):
+        self.thisptr.doDelete(objId)
+        
+
+    # This function expose toAddMsg function
+    cdef _ObjId.ObjId add_msg(self, string msgType
+            , _ObjId.ObjId srcObj, const string& srcField
+            , _ObjId.ObjId destObj, const string& destField
+            ):
+        """Call shell do addMsg function """
+        cdef _ObjId.ObjId objId 
+        objId = self.thisptr.doAddMsg(msgType, srcObj, srcField
+                , destObj, destField)
+        return objId 
+
+    cdef _ObjId.ObjId doFind(self, const string& p):
+        cdef _ObjId.ObjId objId 
+        objId = self.thisptr.doFind(p)
+        return objId 
+
+    def connect(self, string msgType, PyObjId srcObj, string srcField
+            , PyObjId destObj, string destField
+            ):
+        cdef _ObjId.ObjId objId 
+        objId = self.add_msg(msgType, deref(srcObj.thisptr), srcField
+                , deref(destObj.thisptr), destField)
+        obj = PyObjId()
+        obj.thisptr = &objId 
+        return obj
+
+

@@ -36,17 +36,15 @@ for root, dirs, files in os.walk(".", topdown=False):
                 name.endswith(".pyx") or name.endswith(".pxd") or name.endswith(".cxx") or name.endswith(".hpp")
                 )
             ):
-            print("++ Removing %s " % name)
             os.remove(os.path.join(root, name))
-
 for name in dirs:
     if(name == "build"):
         shutil.rmtree(name)
 
 
 extensions = [ 
-        Extension(moduleName, ["Shell.pyx"]
-        , language = "C++"
+        Extension(moduleName, ["cymoose.pyx"]
+        , language = "c++"
         , include_dirs = [ 
             "../basecode" 
             , "../msg"
@@ -58,14 +56,15 @@ extensions = [
             , "-DCYTHON"
             , "-DLINUX"
             ]
-        , extra_link_args = ["-L.", "-g"]
         , libraries = [
             "mpi"
             , "cymoose"
             , "stdc++"
             ]
+        , extra_link_args = ["-L.", "-g"]
         )
-]
+        ]
+
 
 setup(
         cmdclass = {'build_ext': build_ext},

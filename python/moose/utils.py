@@ -3,7 +3,7 @@
 
     Utility functions for moose.
 
-    Last modified: Sat Jan 18, 2014  05:01PM
+    Last modified: Mon Feb 23, 2015  08:34PM
 
 """
 
@@ -25,13 +25,18 @@ from datetime import datetime
 from collections import defaultdict
 
 import _moose
-
 import plot_utils
 import verification_utils
 import print_utils
-import graph_utils
+#import graph_utils
 import sim_utils
+
+from .backend import graphviz
+
+from .topology import topology
+
 from moose_constants import *
+
 import re
 # from PyQt4 import QtCore, Qt
 
@@ -40,18 +45,26 @@ plotTable = plot_utils.plotTable
 plotTables = plot_utils.plotTables
 saveTables = plot_utils.saveTables
 
+saveRecords = plot_utils.saveRecords
+plotRecords = plot_utils.plotRecords
+
 #
 recordAt = sim_utils.recordTarget
 recordTarget = sim_utils.recordTarget
 
 # dump messages onto console
-dump = print_utils.dump
+info = print_utils.info
+warn = print_utils.warn
+error = print_utils.error
+debug = print_utils.debug
+log = print_utils.log
 
 # Verification related function.
 verify = verification_utils.verify
 
 # Topology and graph related functions.
-writeGraphviz  = graph_utils.writeGraphviz
+writeGraphviz  = graphviz.writeGraphviz
+writeNetwork = topology.writeNetwork
 
 # Some verification tests
 verify = verification_utils.verify
@@ -979,7 +992,7 @@ def connect_CaConc(compartment_list, temperature=None):
                                 if child.name=='ion':
                                     if child.value in ['Ca','ca']:
                                         _moose.connect(channel,'IkOut',caconc,'current')
-                                        print 'Connected IkOut of',channel.path,'to current of',caconc.path
+                                        #print 'Connected IkOut of',channel.path,'to current of',caconc.path
                                 ## temperature is used only by Nernst part here...
                                 if child.name=='nernst_str':
                                     nernst = _moose.Nernst(channel.path+'/nernst')
@@ -989,7 +1002,7 @@ def connect_CaConc(compartment_list, temperature=None):
                                     nernst.Temperature = temperature
                                     _moose.connect(nernst,'Eout',channel,'setEk')
                                     _moose.connect(caconc,'concOut',nernst,'ci')
-                                    print 'Connected Nernst',nernst.path
+                                    #print 'Connected Nernst',nernst.path
                         except TypeError:
                             pass
 
@@ -1005,7 +1018,7 @@ def connect_CaConc(compartment_list, temperature=None):
                                 child = _moose.Mstring(child)
                                 if child.value in ['Ca','ca']:
                                     _moose.connect(caconc,'concOut',channel,'concen')
-                                    print 'Connected concOut of',caconc.path,'to concen of',channel.path
+                                    #print 'Connected concOut of',caconc.path,'to concen of',channel.path
                         except TypeError:
                             pass
 

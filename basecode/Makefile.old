@@ -34,6 +34,7 @@ OBJ = \
 	FieldElement.o \
 	Id.o \
 	ObjId.o \
+	global.o \
 	SetGet.o \
 	OpFuncBase.o \
 	EpFunc.o \
@@ -54,6 +55,7 @@ HEADERS = \
 	GlobalDataElement.h \
 	LocalDataElement.h \
 	Eref.h \
+	global.h \
 	Finfo.h \
 	DestFinfo.h \
 	Id.h \
@@ -77,10 +79,11 @@ default: $(TARGET)
 
 $(OBJ)	: $(HEADERS) ../shell/Shell.h
 Element.o:	FuncOrder.h
-testAsync.o:	SparseMatrix.h SetGet.h ../scheduling/Clock.h ../biophysics/IntFire.h ../biophysics/SpikeRingBuffer.h ../biophysics/SynHandler.h
+testAsync.o:	SparseMatrix.h SetGet.h ../scheduling/Clock.h ../biophysics/IntFire.h ../synapse/SynHandlerBase.h ../synapse/SimpleSynHandler.h ../synapse/Synapse.h
 SparseMsg.o:	SparseMatrix.h
 SetGet.o:	SetGet.h ../shell/Neutral.h
 HopFunc.o:	HopFunc.h ../mpi/PostMaster.h
+global.o:       global.h 
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) -I../msg $< -c
@@ -88,17 +91,8 @@ HopFunc.o:	HopFunc.h ../mpi/PostMaster.h
 .PHONY: pymoose
 
 pymoose: CXXFLAGS += -DPYMOOSE
-pymoose: OBJ := $(filter-out main.o,$(OBJ))
-pymoose: OBJ += main_pymoose.o
-pymoose: _basecode_pymoose.o main_pymoose.o
-_basecode_pymoose.o: $(OBJ) main_pymoose.o
-	$(LD) -r -o _basecode_pymoose.o $(OBJ)
 
-main_pymoose.o: main.cpp
-	$(CXX) -c -o $@ $(CXXFLAGS) -I../msg $<
-	@echo "Compiled version of main file for pymoose."
-
-$(TARGET):		$(OBJ) $(HEADERS) 
+$(TARGET): $(OBJ) $(HEADERS)
 	$(LD) -r -o $(TARGET) $(OBJ)
 
 clean:

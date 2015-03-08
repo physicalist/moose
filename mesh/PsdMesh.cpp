@@ -47,6 +47,29 @@ const Cinfo* PsdMesh::initCinfo()
 			"is always just one voxel per PSD. ",
 			&PsdMesh::getElecComptMap
 		);
+		static ReadOnlyValueFinfo< PsdMesh, vector< Id > > elecComptList(
+			"elecComptList",
+			"Vector of Ids of all electrical compartments in this "
+			"PsdMesh. Ordering is as per the tree structure built in "
+			"the NeuroMesh, and may differ from Id order. Ordering "
+			"matches that used for startVoxelInCompt and endVoxelInCompt",
+			&PsdMesh::getElecComptMap
+		);
+		static ReadOnlyValueFinfo< PsdMesh, vector< unsigned int > > startVoxelInCompt(
+			"startVoxelInCompt",
+			"Index of first voxel that maps to each electrical "
+			"compartment. This is a trivial function in the PsdMesh, as"
+			"we have a single voxel per spine. So just a vector of "
+			"its own indices.",
+			&PsdMesh::getStartVoxelInCompt
+		);
+		static ReadOnlyValueFinfo< PsdMesh, vector< unsigned int > > endVoxelInCompt(
+			"endVoxelInCompt",
+			"Index of end voxel that maps to each electrical "
+			"compartment. Since there is just one voxel per electrical "
+			"compartment in the spine, this is just a vector of index+1",
+			&PsdMesh::getEndVoxelInCompt
+		);
 
 		//////////////////////////////////////////////////////////////
 		// MsgDest Definitions
@@ -73,6 +96,9 @@ const Cinfo* PsdMesh::initCinfo()
 	static Finfo* psdMeshFinfos[] = {
 		&thickness,			// ValueFinfo
 		&elecComptMap,		// ReadOnlyValueFinfo
+		&elecComptList,		// ReadOnlyValueFinfo
+		&startVoxelInCompt,		// ReadOnlyValueFinfo
+		&endVoxelInCompt,		// ReadOnlyValueFinfo
 		&psdList,			// DestFinfo
 	};
 
@@ -144,6 +170,22 @@ vector< Id > PsdMesh::getElecComptMap() const
 	return elecCompt_;
 }
 
+vector< unsigned int > PsdMesh::getStartVoxelInCompt() const
+{
+	vector< unsigned int > ret( elecCompt_.size() );
+	for ( unsigned int i = 0; i < ret.size(); ++i ) 
+		ret[i] = i;
+	return ret;
+}
+
+vector< unsigned int > PsdMesh::getEndVoxelInCompt() const
+{
+	vector< unsigned int > ret( elecCompt_.size() );
+	for ( unsigned int i = 0; i < ret.size(); ++i ) 
+		ret[i] = i+1;
+	return ret;
+}
+
 /**
  * This assumes that lambda is the quantity to preserve, over numEntries.
  * So when the compartment changes volume, numEntries changes too.
@@ -188,9 +230,13 @@ void PsdMesh::handlePsdList(
 		parent_.clear();
 		vector< double >::const_iterator x = diskCoords.begin();
 		for ( unsigned int i = 0; i < parentVoxel.size(); ++i ) {
-			psd_.push_back( CylBase( *x, *(x+1), *(x+2), 1, 0, 1 ));
+			double p = *x;
+			double q = *(x+1);
+			double r = *(x+2);
+
+			psd_.push_back( CylBase( p, q, r, 1, 0, 1 ));
 			x += 3;
-			pa_.push_back( CylBase( *x, *(x+1), *(x+2), 1, 0, 1 ));
+			pa_.push_back( CylBase( p - *x, q - *(x+1), r - *(x+2), 1, 0, 1 ));
 			x += 3;
 			psd_.back().setDia( *x++ );
 			psd_.back().setIsCylinder( true );
@@ -482,6 +528,13 @@ const vector< double >& PsdMesh::vGetVoxelVolume() const
 	return vs_;
 }
 
+/*
+* The order of coords sent in is
+		 * 	centre xyz
+		 * 	direction xyz
+		 * 	dia, 
+		 * 	diffusion distance to middle of spine Head.
+*/
 const vector< double >& PsdMesh::vGetVoxelMidpoint() const
 {
 	static vector< double > midpoint;
@@ -494,6 +547,7 @@ const vector< double >& PsdMesh::vGetVoxelMidpoint() const
 		*(k + psd_.size() ) = ( coords[1] + coords[4] ) / 2.0;
 		*(k + 2 * psd_.size() ) = ( coords[2] + coords[5] ) / 2.0;
 		k++;
+		// cout << i << " " << coords[0] << " " << coords[3]<< " " << coords[1]<< " " << coords[4]<< " " << coords[2]<< " " << coords[5] << " " << coords[6] << endl;
 	}
 	return midpoint;
 }

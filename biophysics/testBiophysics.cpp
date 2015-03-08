@@ -22,6 +22,7 @@ extern void testCompartment(); // Defined in Compartment.cpp
 extern void testCompartmentProcess(); // Defined in Compartment.cpp
 extern void testMarkovRateTable(); //Defined in MarkovRateTable.cpp
 extern void testVectorTable();	//Defined in VectorTable.cpp
+
 /*
 extern void testSpikeGen(); // Defined in SpikeGen.cpp
 extern void testCaConc(); // Defined in CaConc.cpp
@@ -1526,4 +1527,9 @@ void testBiophysicsProcess()
 #endif
 }
 
+#else // ifdef DO_UNIT_TESTS
+void testBiophysics()
+{;}
+void testBiophysicsProcess()
+{;}
 #endif

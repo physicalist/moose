@@ -164,6 +164,39 @@ Shell::Shell()
 Shell::~Shell()
 {;}
 
+#ifdef  CYMOOSE
+
+/*-----------------------------------------------------------------------------
+ *  This function must create a fully functional Shell. Used in cython
+ *  interface.
+ *-----------------------------------------------------------------------------*/
+Shell* Shell::initShell()
+{
+    Eref sheller = Id().eref();
+    Shell* shell = reinterpret_cast< Shell* >( sheller.data() );
+    return shell;
+}
+
+Id Shell::create(string type, string name, unsigned int numData
+        , NodePolicy nodePolicy, unsigned int preferredNode 
+        ) 
+{
+    if(name.size() == 0)
+        return doCreate(type, Id(), name, numData, nodePolicy, preferredNode);
+
+    string::size_type pos = name.find_last_of('/');
+    string parentPath = name.substr(0, pos);
+    ObjId parentObj = ObjId(parentPath);
+//    cerr << "info: Creating Obj with parent : " << parentObj << endl;
+    Id id = doCreate(type, parentObj, name.substr(pos+1)
+            , numData, nodePolicy, preferredNode
+            );
+//    cerr << "    ++ with id " << id << endl;
+    return id;
+}
+
+#endif     /* -----  CYMOOSE  ----- */
+
 void Shell::setShellElement( Element* shelle )
 {
 	shelle_ = shelle;
@@ -190,7 +223,7 @@ Id Shell::doCreate( string type, ObjId parent, string name,
     clock_t t = clock();
 #endif
 	const Cinfo* c = Cinfo::find( type );
-	if ( name.find_first_of( "[] #?\"/\\" ) != string::npos ) {
+	if ( !isNameValid( name ) ) {
 		stringstream ss;
 		ss << "Shell::doCreate: bad character in name'" << name << 
 				"'. No Element created";
@@ -331,7 +364,7 @@ void Shell::doQuit()
 	SetGet0::set( ObjId(), "quit" );
 	// Shell::keepLooping_ = 0;
 #ifdef ENABLE_LOGGER 
-        cout << logger.dumpStats(1);
+        cout << logger.dumpStats(1) << endl << endl;
         logger.save();
 #endif
 }
@@ -340,8 +373,10 @@ void Shell::doStart( double runtime )
 {
 #ifdef ENABLE_LOGGER
         clock_t t = clock();
+        stringstream ss;
+        ss << "Running moose for " << runtime << " seconds";
+        logger.log("INFO", ss.str());
 #endif
-
 	Id clockId( 1 );
 	SetGet1< double >::set( clockId, "start", runtime );
 
@@ -525,6 +560,15 @@ bool Shell::chopString( const string& path, vector< string >& ret,
 		ret.push_back( temp.substr( 0, pos ) );
 	}
 	return isAbsolute;
+}
+
+/**
+ * Static func to check if an object name is legal. True if legal.
+ */
+bool Shell::isNameValid( const string& name )
+{
+	return ( name.length() > 0 && 
+				name.find_first_of( "[] #?\"/\\" ) == string::npos );
 }
 
 /**

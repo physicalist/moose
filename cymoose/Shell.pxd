@@ -6,7 +6,7 @@ cimport Id as _Id
 cimport ObjId as _ObjId
 from libcpp.string cimport string
 from libcpp.vector cimport vector
-#from libcpp.map cimport map
+from libcpp cimport bool
 
 cdef extern from "../shell/Shell.h":
     cdef enum NodePolicy:
@@ -22,13 +22,24 @@ cdef extern from "../shell/Shell.h":
     cdef extern cppclass Shell:
         Shell() 
         Shell* initShell()
-        _Id.Id doCreate(string elemType
-                , _ObjId.ObjId parent
+        _Id.Id create(string elemType
                 , string name
                 , unsigned int numData 
                 , NodePolicy nodePolicy 
                 , unsigned int preferredNode 
                 ) 
+        bool doDelete(_ObjId.ObjId id)
+
+        # Function to  connect.
+        _ObjId.ObjId doAddMsg( const string& msgType, 
+                _ObjId.ObjId src, const string& srcField, 
+                _ObjId.ObjId dest, const string& destField )
+
+
+        # Function to find ObjId 
+        _ObjId.ObjId doFind(const string& path) const
+
+        
 
 cdef extern from "../shell/Wildcard.h":
     int wildcardFind(const string& n, vector[_ObjId.ObjId]& ret) 
