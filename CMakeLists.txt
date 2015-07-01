@@ -329,7 +329,7 @@ endif()
 ######################################## MOOGLI ################################
 
 # Moogli as external project
-OPTION(BUILD_MOOGLI "Build moogli extension." OFF)
+OPTION(BUILD_MOOGLI "Build moogli extension." ON)
 IF(BUILD_MOOGLI)
     SET(MOOGLI_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/python/moogli)
 
@@ -408,8 +408,6 @@ install(FILES ${PROJECT_SOURCE_DIR}/python/setup-moose.py
     )
 
 if(BUILD_MOOGLI)
-
-    SET(MOOGLI_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/python/moogli)
 
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/python/moogli
         DESTINATION usr/share/moogli
