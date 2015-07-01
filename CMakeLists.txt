@@ -129,9 +129,8 @@ if(ENABLE_SBML)
 
     if(NOT LIBSBML_FOUND)
         # Build sbml locally
-        include(sbml_local)
-        set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
         MESSAGE("++ LIBSBML NOT FOUND.  Building locally: ${LIBSBML_LIBRARY}")
+        set(BUILD_SBML_LOCALLY TRUE)
         set(LIBSBML_FOUND TRUE)
     endif()
 else()
@@ -149,6 +148,12 @@ include_directories(msg basecode)
 add_executable(moose-bin basecode/main.cpp)
 #add_library(moose SHARED basecode/main.cpp)
 #set_target_properties(moose PROPERTIES COMPILE_FLAGS  "-DMOOSE_LIB")
+
+if(BUILD_SBML_LOCALLY)
+    include(sbml_local)
+    add_dependencies(moose-bin sbml_local)
+    set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
+endif()
 
 ## GSL
 # Setup GSL
