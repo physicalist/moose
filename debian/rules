@@ -12,14 +12,13 @@ endif # $(OS)
 else
     NPROCS := $J
 endif # $J
-export NPROCS
+export DEB_PARALLEL_JOBS=$(NPROCS)
 PYTHON_LIBS=$(shell python -c  "import site; print site.getsitepackages()[1]")
-export MAKE=gmake -j$(NPROCS) 
 
 ## Here goes the debian make.
 
 %:
-	dh "$@" --buildsystem=cmake
+	dh "$@" --buildsystem=cmake 
 #
 #override_dh_auto_clean:
 #	rm -rf $(BUILD_DIR_MOOSE)
