@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 
 # export DH_VERBOSE=1
-export BUILD_DIR_MOOSE=_build
 NPROCS := 1
 OS := $(shell uname)
 ifeq ($J,)
@@ -15,8 +14,7 @@ else
 endif # $J
 export NPROCS
 PYTHON_LIBS=$(shell python -c  "import site; print site.getsitepackages()[1]")
-#export PYTHONPATH=$(shell pwd)/../debian/tmp/$(PYTHON_LIBS))
-export MAKE="make -j$(NPROCS)"
+export MAKE=gmake -j$(NPROCS) 
 
 ## Here goes the debian make.
 
