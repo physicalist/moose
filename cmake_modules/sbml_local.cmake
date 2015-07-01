@@ -20,6 +20,8 @@ ADD_CUSTOM_TARGET(_libsml ALL DEPENDS _libsbml.out)
 set(LIBSBML_LIBRARY_LOCAL ${SBML_INSTALL_DIR}/lib/libsbml-static.a)
 MESSAGE("++ LIBSBML_LIBRARY: ${LIBSBML_LIBRARY_LOCAL}")
 include_directories(${SBML_INSTALL_DIR}/include)
+add_dependencies(moose-bin _libsbml)
+#add_dependencies(moose-python _libsml)
 
 #ExternalProject_Add(sbml_local
     #PREFIX ${LIBSBML_SRC_DIR}
