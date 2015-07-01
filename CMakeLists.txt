@@ -396,8 +396,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/Demos
     )
 
 # Both moose and moogli python directory are added here.
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/python/moose
-    ${PROJECT_SOURCE_DIR}/python/libmumbl
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/python/moose ${PROJECT_SOURCE_DIR}/python/libmumbl
     DESTINATION usr/share/moose
     COMPONENT moose-python
     )

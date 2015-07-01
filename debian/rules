@@ -18,7 +18,10 @@ PYTHON_LIBS=$(shell python -c  "import site; print site.getsitepackages()[1]")
 ## Here goes the debian make.
 
 %:
-	dh "$@" --buildsystem=cmake -- -DBUILD_MOOGLI=ON -DDEBUG=OFF -DCMAKE_VERBOSE_MAKEFILE=OFF
+	dh "$@" --buildsystem=cmake --parallel 
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DBUILD_MOOGLI=ON -DDEBUG=OFF -DCMAKE_VERBOSE_MAKEFILE=OFF 
 #
 #override_dh_auto_clean:
 #	rm -rf $(BUILD_DIR_MOOSE)
