@@ -25,7 +25,7 @@ case "$1" in
         cd /usr/share/moose 
         tar xzvf moose-3.0.2.tar.gz
         cd moose-3.0.2 
-        python setup-moose.py install --install-layout=deb --record /etc/moose/installed.txt
+        python setup-moose.py install --install-layout=deb --record /etc/moose/installed_files.txt
         )
     ;;
 
