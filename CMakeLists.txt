@@ -128,9 +128,10 @@ if(ENABLE_SBML)
     find_package(LIBSBML)
 
     if(NOT LIBSBML_FOUND)
-        MESSAGE("++ LIBSBML NOT FOUND.  Building locally.")
         # Build sbml locally
         include(sbml_local)
+        set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
+        MESSAGE("++ LIBSBML NOT FOUND.  Building locally: ${LIBSBML_LIBRARY}")
         set(LIBSBML_FOUND TRUE)
     endif()
 else()
