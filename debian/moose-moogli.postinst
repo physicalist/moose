@@ -20,6 +20,12 @@ set -e
 
 case "$1" in
     configure)
+        mkdir -p /etc/moogli
+        cd /usr/share/moogli 
+        tar xzvf moogli-1.0.1.tar.gz
+        cd moogli-1.0.1
+        python setup-moogli install --install-layout=deb --record /etc/moogli/installed.txt
+        )
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

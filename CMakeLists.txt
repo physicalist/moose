@@ -40,7 +40,7 @@ add_custom_target(uninstall
 
 ################################# CMKAE MACROS #################################
 
-option(CMAKE_VERBOSE_MAKEFILE "Set makefile verbose" OFF)
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules")
 set(INSTALL_LIB_DIR lib CACHE PATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(INSTALL_BIN_DIR bin CACHE PATH "${CMAKE_INSTALL_PREFIX}/bin")
@@ -329,7 +329,7 @@ endif()
 ######################################## MOOGLI ################################
 
 # Moogli as external project
-OPTION(BUILD_MOOGLI "Build moogli extension." ON)
+OPTION(BUILD_MOOGLI "Build moogli extension." OFF)
 IF(BUILD_MOOGLI)
     SET(MOOGLI_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/python/moogli)
 
@@ -384,7 +384,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/gui
     COMPONENT moose-gui
     )
 
-install(FILES ${PROJECT_SOURCE_DIR}/python/setup-moose.py
+INSTALL(FILES ${PROJECT_SOURCE_DIR}/python/setup-moose.py
     DESTINATION lib/moose
     COMPONENT moose-python
     )
@@ -395,27 +395,34 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/Demos
     COMPONENT moose-gui
     )
 
-# Both moose and moogli python directory are added here.
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/python/moose ${PROJECT_SOURCE_DIR}/python/libmumbl
-    DESTINATION usr/share/moose
+# Here we generate source distribution of python extension.
+install(CODE
+    "execute_process(COMMAND ${PYTHON_EXECUTABLE} setup-moose.py sdist
+    WORKING_DIRECTORY ${PROJECT_PYTHON_PATH})"
     COMPONENT moose-python
     )
 
-install(FILES ${PROJECT_SOURCE_DIR}/python/setup-moose.py
-    DESTINATION usr/share/moose
+install(DIRECTORY ${PROJECT_PYTHON_PATH}/dist/
+    DESTINATION share/moose
     COMPONENT moose-python
+    PATTERN moose*
     )
+
 
 if(BUILD_MOOGLI)
 
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/python/moogli
-        DESTINATION usr/share/moogli
-        COMPONENT moose-moogli
+    SET(MOOGLI_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/python/moogli)
+
+    install(CODE
+        "execute_process(COMMAND ${PYTHON_EXECUTABLE} setup-moogli.py sdist
+        WORKING_DIRECTORY ${PROJECT_PYTHON_PATH})"
+        COMPONENT moogli
         )
 
-    install(FILES ${PROJECT_SOURCE_DIR}/python/setup-moogli.py
-        DESTINATION usr/share/moogli
-        COMPONENT moose-moogli
+    install(DIRECTORY ${PROJECT_PYTHON_PATH}/dist/
+        DESTINATION share/moogli
+        COMPONENT moogli
+        PATTERN moogli*
         )
 
 endif(BUILD_MOOGLI)
@@ -447,93 +454,8 @@ ADD_TEST(NAME moose-bin-raw-run
 
 SET(TEST_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python)
 
-#ADD_TEST(NAME pymoose-test-mumbl
-    #COMMAND ${PYTHON_EXECUTABLE} test_mumbl.py
-    #WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/python
-#    )
-
 ADD_TEST(NAME pymoose-test-pymoose
     COMMAND ${PYTHON_EXECUTABLE} test_pymoose.py
     WORKING_DIRECTORY ${TEST_DIRECTORY}
     )
-
-ADD_TEST(NAME pymoose-test-synchan
-    COMMAND ${PYTHON_EXECUTABLE} test_synchan.py
-    WORKING_DIRECTORY ${TEST_DIRECTORY}
-    )
-
-ADD_TEST(NAME pymoose-test-function
-    COMMAND ${PYTHON_EXECUTABLE} test_function.py
-    WORKING_DIRECTORY ${TEST_DIRECTORY}
-    )
-
-ADD_TEST(NAME pymoose-test-vec
-    COMMAND ${PYTHON_EXECUTABLE} test_vec.py
-    WORKING_DIRECTORY ${TEST_DIRECTORY}
-    )
-
-#ADD_TEST(NAME pymoose-test-sbml 
-#    COMMAND ${PYTHON_EXECUTABLE} test_sbml.py
-#    WORKING_DIRECTORY ${TEST_DIRECTORY}
-#    )
-#
-#ADD_TEST(NAME pymoose-test-kkit 
-#    COMMAND ${PYTHON_EXECUTABLE} test_kkit.py
-#    WORKING_DIRECTORY ${TEST_DIRECTORY}
-#    )
-#
-
-####### CPack ###############################
-
-set(CPACK_GENERATOR "DEB;RPM;STGZ")
-set(CPACK_STRIP_FILES TRUE)
-set(CPACK_COMPONENTS_ALL_IN_ONE_PACKAGE ON)
-#  We need to compile python scripts on the installation  host.
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Dilawar Singh")
-set(CPACK_PACKAGE_CONTACT "dilawars@ncbs.res.in")
-#set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MOOSE, The Neural Simulator")
-set(CPACK_PACKAGE_VERSION "3.0.1")
-set(CPACK_PACKAGE_VERSION_MAJOR "3")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH "1")
-set(CPACK_PACKAGE_VENDOR "NCBS Bangalore")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.md")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Dilawar Singh <dilawars@ncbs.res.in>")
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${PKGARCH}")
-set(CPACK_PACKAGE_FILE_NAME "moose-${CPACK_PACKAGE_VERSION}-Linux-${PKGARCH}")
-set(CPACK_STRIP_FILES moose)
-
-set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-    "openmpi-bin
-    , python-matplotlib
-    , python-qt4, openscenegraph
-    , python-tornado, python-suds, python-nose, python-setuptools
-    , libxml2"
-)
-
-set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
-    "${DEBIAN_POSTINST_PATH};${DEBIAN_PRERM_PATH};"
-    )
-
-## RPM 
-set(CPACK_RPM_PACKAGE_ARCHITECTURE "${RPMPKGARCH}")
-set(CPACK_RPM_SPEC_INSTALL_POST "/bin/true")
-set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${RPM_POSTINST_PATH}")
-set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${RPM_PRERM_PATH}")
-
-# This has to be a single line.
-set(CPACK_RPM_PACKAGE_REQUIRES
-    "openmpi-devel python-matplotlib-qt4 python-qt4  python-tornado python-suds python-nose python-setuptools libxml2"
-    )
-
-# A workaround in RPM
-set(CPACK_RPM_SPEC_MORE_DEFINE "%define ignore \#")
-set(CPACK_RPM_USER_FILELIST "%ignore /" "%ignore /usr" "%ignore /usr/share" 
-    "%ignore /usr/share/applications"
-    "%ignore /tmp"
-    )
-
-include(CPack)
 
