@@ -115,26 +115,30 @@ else()
 endif()
 
 
-#### DEPENDENCIES
+################### DEPENDENCIES ########################################
 
-find_package(GSL 1.16 REQUIRED)
+# libsbml ESSENTIAL
+
 option(ENABLE_SBML "Enable SBML support" ON)
 if(ENABLE_SBML)
+    ADD_DEFINITIONS(-DUSE_SBML)
+    find_package(BZip2 REQUIRED)
+    find_package(LibXML2 REQUIRED)
+    find_package(ZLIB REQUIRED)
     find_package(LIBSBML)
+
     if(NOT LIBSBML_FOUND)
-        MESSAGE("++ LIBSBML NOT FOUND.  Disabling SBML support.")
-        ADD_DEFINITIONS(-UUSE_SBML)
-    else()
-        MESSAGE("++ SBML found. Support is ON")
-        ADD_DEFINITIONS(-DUSE_SBML)
-        include_directories(${LIBSBML_INCLUDE_DIR})
-        find_package(BZip2 REQUIRED)
-        find_package(LibXML2 REQUIRED)
-        find_package(ZLIB REQUIRED)
+        MESSAGE("++ LIBSBML NOT FOUND.  Building locally.")
+        # Build sbml locally
+        include(sbml_local)
     endif()
+
 else()
     SET(LIBSBML_FOUND FALSE)
 ENDIF()
+
+# libgsl, ESSENTIAL
+find_package(GSL 1.16 REQUIRED)
 
 # python support: check for interpreter, sip, pyqt4
 FIND_PACKAGE(PythonDev REQUIRED)
