@@ -131,8 +131,8 @@ if(ENABLE_SBML)
         MESSAGE("++ LIBSBML NOT FOUND.  Building locally.")
         # Build sbml locally
         include(sbml_local)
+        set(LIBSBML_FOUND TRUE)
     endif()
-
 else()
     SET(LIBSBML_FOUND FALSE)
 ENDIF()
@@ -208,14 +208,14 @@ add_subdirectory(examples)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/include)
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/lib)
 
-set(LIBRARIES ${BZIP2_LIBRARIES} ${LibXML2_LIBRARIES})
+#set(LIBRARIES ${BZIP2_LIBRARIES} ${LibXML2_LIBRARIES})
 if(HDF5_FOUND)
     list(APPEND LIBRARIES ${HDF5_LIBRARY})
 endif()
 
 if(LIBSBML_FOUND)
     list(APPEND LIBRARIES moose_sbml ${LIBSBML_LIBRARY}
-        ${ZLIB_LIBRARIES}
+        ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
         )
 endif()
 
