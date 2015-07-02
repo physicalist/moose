@@ -40,7 +40,7 @@ add_custom_target(uninstall
 
 ################################# CMKAE MACROS #################################
 
-#set(CMAKE_VERBOSE_MAKEFILE TRUE)
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules")
 set(INSTALL_LIB_DIR lib CACHE PATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(INSTALL_BIN_DIR bin CACHE PATH "${CMAKE_INSTALL_PREFIX}/bin")
@@ -150,8 +150,8 @@ add_executable(moose-bin basecode/main.cpp)
 #set_target_properties(moose PROPERTIES COMPILE_FLAGS  "-DMOOSE_LIB")
 
 if(BUILD_SBML_LOCALLY)
-    include(sbml_local)
-    add_dependencies(moose-bin sbml_local)
+    include(sbml_local_project.cmake)
+    add_dependencies(moose-bin _libsbml)
     set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
 endif()
 
