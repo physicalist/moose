@@ -170,7 +170,6 @@ if(BUILD_SBML_LOCALLY)
     set(LIBSBML_LIBRARY_LOCAL ${SBML_INSTALL_DIR}/lib/libsbml.a)
     MESSAGE("++ LIBSBML_LIBRARY: ${LIBSBML_LIBRARY_LOCAL}")
     include_directories(${SBML_INSTALL_DIR}/include)
-    set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
     add_dependencies(moose-bin _libsml_local)
 
 endif()
@@ -234,15 +233,20 @@ add_subdirectory(examples)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/include)
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/lib)
 
-#set(LIBRARIES ${BZIP2_LIBRARIES} ${LibXML2_LIBRARIES})
+set(LIBRARIES ${BZIP2_LIBRARIES} ${LibXML2_LIBRARIES})
+set(MOOSE_LIBRARIES "")
 if(HDF5_FOUND)
     list(APPEND LIBRARIES ${HDF5_LIBRARY})
 endif()
 
 if(LIBSBML_FOUND)
-    list(APPEND LIBRARIES moose_sbml ${LIBSBML_LIBRARY}
-        ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
-        )
+    if(NOT LIBSBML_LIBRARY_LOCAL)
+        list(APPEND LIBRARIES moose_sbml ${LIBSBML_LIBRARY}
+            ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
+            )
+    else()
+        list(APPEND MOOSE_LIBRARIES ${LIBSBML_LIBRARY_LOCAL} ${BZIP2_LIBRARIES})
+    endif()
 endif()
 
 if(LIBXML2_FOUND)
@@ -258,7 +262,7 @@ if(READLINE_FOUND AND TERMCAP_FOUND)
 endif()
 
 ###################################### LINKING #################################
-set(MOOSE_LIBRARIES
+list(APPEND MOOSE_LIBRARIES
     moose_builtins
     msg
     benchmarks
@@ -285,8 +289,8 @@ set(MOOSE_LIBRARIES
 target_link_libraries(moose-bin 
     "-Wl,--whole-archive"
     ${MOOSE_LIBRARIES}
-    ${LIBRARIES}
     "-Wl,--no-whole-archive"
+    ${LIBRARIES}
     )
 
 ######################### BUILD PYMOOSE ########################################
