@@ -167,7 +167,7 @@ if(BUILD_SBML_LOCALLY)
         )
 
     ADD_CUSTOM_TARGET(_libsml_local ALL DEPENDS _libsbml.out)
-    set(LIBSBML_LIBRARY_LOCAL ${SBML_INSTALL_DIR}/lib/libsbml-static.a)
+    set(LIBSBML_LIBRARY_LOCAL ${SBML_INSTALL_DIR}/lib/libsbml.a)
     MESSAGE("++ LIBSBML_LIBRARY: ${LIBSBML_LIBRARY_LOCAL}")
     include_directories(${SBML_INSTALL_DIR}/include)
     set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
