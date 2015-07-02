@@ -230,39 +230,8 @@ add_subdirectory(synapse)
 add_subdirectory(intfire)
 add_subdirectory(examples)
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/include)
-LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/lib)
-
-set(LIBRARIES ${BZIP2_LIBRARIES} ${LibXML2_LIBRARIES})
-set(MOOSE_LIBRARIES "")
-if(HDF5_FOUND)
-    list(APPEND LIBRARIES ${HDF5_LIBRARY})
-endif()
-
-if(LIBSBML_FOUND)
-    if(NOT LIBSBML_LIBRARY_LOCAL)
-        list(APPEND LIBRARIES moose_sbml ${LIBSBML_LIBRARY}
-            ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES}
-            )
-    else()
-        list(APPEND MOOSE_LIBRARIES ${LIBSBML_LIBRARY_LOCAL} ${BZIP2_LIBRARIES})
-    endif()
-endif()
-
-if(LIBXML2_FOUND)
-    list(APPEND LIBRARIES ${LibXML2_LIBRARIES})
-endif()
-
-if(GSL_FOUND)
-    list(APPEND LIBRARIES ${GSL_LIBRARIES})
-endif()
-
-if(READLINE_FOUND AND TERMCAP_FOUND)
-    list(APPEND LIBRARIES ${Readline_LIBRARY} ${TERMCAP_LIBRARY})
-endif()
-
-###################################### LINKING #################################
-list(APPEND MOOSE_LIBRARIES
+# And the libraries.
+set(MOOSE_LIBRARIES
     moose_builtins
     msg
     benchmarks
@@ -286,6 +255,41 @@ list(APPEND MOOSE_LIBRARIES
     basecode
     )
 
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/include)
+LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/moogli/lib)
+
+set(LIBRARIES ${BZIP2_LIBRARIES} ${LibXML2_LIBRARIES} z)
+
+if(HDF5_FOUND)
+    list(APPEND LIBRARIES ${HDF5_LIBRARY})
+endif()
+
+if(LIBSBML_FOUND)
+    if(NOT LIBSBML_LIBRARY_LOCAL)
+        list(APPEND LIBRARIES moose_sbml ${LIBSBML_LIBRARY}
+            ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES} 
+            )
+    else()
+        list(APPEND MOOSE_LIBRARIES ${LIBSBML_LIBRARY_LOCAL})
+        list(APPEND LIBRARIES moose_sbml)
+        list(APPEND LIBRARIES ${ZLIB_LIBRARIES})
+    endif()
+endif()
+
+if(LIBXML2_FOUND)
+    list(APPEND LIBRARIES ${LibXML2_LIBRARIES})
+endif()
+
+if(GSL_FOUND)
+    list(APPEND LIBRARIES ${GSL_LIBRARIES})
+endif()
+
+if(READLINE_FOUND AND TERMCAP_FOUND)
+    list(APPEND LIBRARIES ${Readline_LIBRARY} ${TERMCAP_LIBRARY})
+endif()
+
+###################################### LINKING #################################
 target_link_libraries(moose-bin 
     "-Wl,--whole-archive"
     ${MOOSE_LIBRARIES}
