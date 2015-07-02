@@ -172,6 +172,7 @@ if(BUILD_SBML_LOCALLY)
     include_directories(${SBML_INSTALL_DIR}/include)
     set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
     add_dependencies(moose-bin _libsml_local)
+
 endif()
 
 ## GSL
