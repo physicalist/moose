@@ -33,7 +33,7 @@ override_dh_auto_configure:
 	    -DCMAKE_INSTALL_PREFIX=../debian/tmp/usr ..
 
 override_dh_auto_build:
-	cd $(BUILD_DIR_MOOSE) && make #-j$(NPROCS)
+	cd $(BUILD_DIR_MOOSE) && make -j$(NPROCS)
 
 
 override_dh_auto_install:
