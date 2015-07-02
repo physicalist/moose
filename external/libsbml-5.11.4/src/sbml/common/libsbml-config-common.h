@@ -53,7 +53,7 @@
 
 
 /* Define to 1 if you have the <check.h> header file. */
-#define HAVE_CHECK_H 1
+/* #undef HAVE_CHECK_H */
 
 /* Define to 1 if you have the `check' library (-lcheck). */
 /* #undef HAVE_LIBCHECK */

@@ -7,13 +7,15 @@ SET(SBML_INSTALL_DIR ${LIBSBML_SRC_DIR}/_build)
 FILE(MAKE_DIRECTORY ${SBML_INSTALL_DIR})
 
 ADD_CUSTOM_COMMAND(OUTPUT _libsbml.out
-    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${SBML_INSTALL_DIR}
-    -DBUILD_SHARED_LIBS=OFF
-    -DWITH_BZIP2=ON -DWITH_LIBXML=ON 
-    ${LIBSBML_SRC_DIR}
-    COMMAND make
-    WORKING_DIRECTORY ${SBML_INSTALL_DIR}
-    VERBATIM
+    COMMAND ./configure --prefix=${SBML_INSTALL_DIR}
+    --enable-shared-version=no
+    --without-doxygen
+    --with-pic
+    --with-libxml
+    --with-zlib
+    --with-bzip2 
+    COMMAND make install
+    WORKING_DIRECTORY ${LIBSBML_SRC_DIR}
     )
 
 ADD_CUSTOM_TARGET(_libsml ALL DEPENDS _libsbml.out)
