@@ -146,13 +146,32 @@ FIND_PACKAGE(PythonDev REQUIRED)
 ################################### SETUP BUILD ################################
 include_directories(msg basecode)
 add_executable(moose-bin basecode/main.cpp)
-#add_library(moose SHARED basecode/main.cpp)
-#set_target_properties(moose PROPERTIES COMPILE_FLAGS  "-DMOOSE_LIB")
 
 if(BUILD_SBML_LOCALLY)
-    include(sbml_local_project.cmake)
-    add_dependencies(moose-bin _libsbml)
+    #include(sbml_local_project.cmake)
+    SET(LIBSBML_SRC_DIR ${PROJECT_SOURCE_DIR}/external/libsbml-5.11.4)
+    SET(SBML_INSTALL_DIR ${LIBSBML_SRC_DIR}/_build)
+    FILE(MAKE_DIRECTORY ${SBML_INSTALL_DIR})
+
+    ADD_CUSTOM_COMMAND(OUTPUT _libsbml.out
+        COMMAND ./configure --prefix=${SBML_INSTALL_DIR}
+        --enable-shared-version=no
+        --without-doxygen
+        --with-pic
+        --with-libxml
+        --with-zlib
+        --with-bzip2 
+        COMMAND make 
+        COMMAND make install
+        WORKING_DIRECTORY ${LIBSBML_SRC_DIR}
+        )
+
+    ADD_CUSTOM_TARGET(_libsml_local ALL DEPENDS _libsbml.out)
+    set(LIBSBML_LIBRARY_LOCAL ${SBML_INSTALL_DIR}/lib/libsbml-static.a)
+    MESSAGE("++ LIBSBML_LIBRARY: ${LIBSBML_LIBRARY_LOCAL}")
+    include_directories(${SBML_INSTALL_DIR}/include)
     set(LIBSBML_LIBRARY ${LIBSBML_LIBRARY_LOCAL})
+    add_dependencies(moose-bin _libsml_local)
 endif()
 
 ## GSL
@@ -291,8 +310,11 @@ if(BUILD_PYMOOSE)
     find_package(PythonDev REQUIRED)
     include_directories(${PYTHON_INCLUDE_DIRS})
     add_subdirectory(pymoose)
-    add_library(_moose SHARED pymoose/moosemodule.cpp)
 
+    add_library(_moose SHARED pymoose/moosemodule.cpp)
+    if(BUILD_SBML_LOCALLY)
+        add_dependencies(_moose _libsml_local)
+    endif()
     if(LOCAL_GSL)
         add_dependencies(_moose GSL)
     endif()
