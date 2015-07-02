@@ -25,17 +25,15 @@ export PYTHONPATH=$(shell pwd)/../debian/tmp/$(PYTHON_LIBS))
 override_dh_auto_clean:
 	rm -rf $(BUILD_DIR_MOOSE)
 	dh_auto_clean --buildsystem=cmake
-	#
+
 # consider using -DUSE_VERSIONED_DIR=ON if backporting
 override_dh_auto_configure:
-	#dh_auto_configure --buildsystem=cmake -- -DCMAKE_BUILD_TYPE=Release -DDEBUG=OFF 
 	mkdir -p $(BUILD_DIR_MOOSE)
 	cd $(BUILD_DIR_MOOSE) && cmake -DDEBUG=OFF -DBUILD_MOOGLI=ON -DCMAKE_VERBOSE_MAKEFILE=OFF \
 	    -DCMAKE_INSTALL_PREFIX=../debian/tmp/usr ..
 
 override_dh_auto_build:
-	#dh_auto_build --buildsystem=cmake
-	cd $(BUILD_DIR_MOOSE) && make -j$(NPROCS)
+	cd $(BUILD_DIR_MOOSE) && make #-j$(NPROCS)
 
 
 override_dh_auto_install:
