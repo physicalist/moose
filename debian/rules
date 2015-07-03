@@ -20,7 +20,7 @@ export PYTHONPATH=$(shell pwd)/../debian/tmp/$(PYTHON_LIBS))
 ## Here goes the debian make.
 
 %:
-	dh "$@" 
+	dh "$@" --parallel
 
 override_dh_auto_clean:
 	rm -rf $(BUILD_DIR_MOOSE)
