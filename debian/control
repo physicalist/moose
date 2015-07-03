@@ -28,7 +28,7 @@ Description: MOOSE is the Multiscale Object-Oriented Simulation Environment
 
 Package: moose-core
 Architecture: any
-Depends: python-numpy, python-matplotlib, python-nose, libxml2, python-networkx, moose-doc, python-setuptools, python-suds, libhdf5-7, libgsl0ldbl
+Depends: libxml2, libhdf5-7, libgsl0ldbl
 Description: Core C++ part of MOOSE
  .
  Core MOOSE engine without any scripting support. For general use see moose-python, moose-gui packages. This is only useful on clusters.
@@ -36,7 +36,7 @@ Description: Core C++ part of MOOSE
 
 Package: moose-python
 Architecture: any
-Depends: python-numpy, python-matplotlib, python-nose, libxml2, python-networkx, moose-doc, python-setuptools, python-suds, libhdf5-7, libgsl0ldbl
+Depends: python-numpy, python-matplotlib, python-nose, libxml2, python-networkx, python-setuptools, python-suds, libhdf5-7, libgsl0ldbl
 Description: Python interface of MOOSE Simulator
  .
  This package installs python scripting interface.
@@ -50,8 +50,8 @@ Description: GUI of moose
 
 Package: moose-moogli
 Architecture: any
-Depends: python-qt4-gl, python-sip, libqt4-gui, libopenscenegraph99
-Suggests: moose-gui
+Depends: python-qt4-gl, python-sip, libqt4-gui, libopenscenegraph99, moose-gui
+Suggests: moose-python
 Description: Visualizer for neural simulator
  .
  Moogli (a sister project of MOOSE) is a simulator independent openGL based
