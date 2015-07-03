@@ -19,18 +19,11 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-        set +e
-        ( pip uninstall -y pymoose )
-        set -e
 
 	if [ -d /etc/moose ]; then
             cd /etc/moose && cat installed_files.txt | xargs rm -rf 
             rm -R /etc/moose
 	fi
-
-        if [ -d /usr/lib/moose ]; then
-            rm -R /usr/lib/moose
-        fi
 
 	if [ -d /usr/share/doc/moose ]; then
             rm -R /usr/share/doc/moose
@@ -49,16 +42,15 @@ case "$1" in
         fi
 
 	pydistpkg_dir=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`
-	if [ -d $pydistpkg_dir/moose ];
-	then 
+	if [ -d $pydistpkg_dir/moose ]; then 
             rm -R $pydistpkg_dir/moose
 	fi
-	if [ -f $HOME/Desktop/MooseGUI.desktop ];
-	then 
+
+	if [ -f $HOME/Desktop/MooseGUI.desktop ]; then 
 	    rm $HOME/Desktop/MooseGUI.desktop
 	fi
-	if [ -f $HOME/Desktop/HHSquidDemo.desktop ];
-	then 
+
+	if [ -f $HOME/Desktop/HHSquidDemo.desktop ]; then 
 	    rm $HOME/Desktop/HHSquidDemo.desktop
 	fi
 
